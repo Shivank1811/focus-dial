@@ -4,19 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#D4402C">
+<meta name="description" content="A study timer with a kitchen-timer dial, breaks, an alarm and a session log.">
+<!-- ============ SHOP SETTINGS: edit these two lines ============ -->
+<meta name="fd-buy-url" content="https://YOUR-STORE-LINK-HERE">
+<meta name="fd-price" content="₹149">
+<!-- ============================================================== -->
 <title>Focus Dial</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a two-column desk. Left: a kitchen-timer dial whose coloured wedge shrinks as time runs out, with controls under it. Right: today's total, a 7-day chart, the session log and settings. Stacks to one column under 860px. */
+/* Layout: a two-column desk. Left: a kitchen-timer dial whose coloured wedge shrinks as time runs out, with controls under it. Right: today, exams, charts, the session log and settings. Stacks to one column under 860px. */
 :root{
-  --bg:#ECEFF2;
-  --surface:#F7F9FA;
+  --nh:210; --ns:17%;
+  --bg:hsl(var(--nh) var(--ns) 93.5%);
+  --surface:hsl(var(--nh) var(--ns) 97.5%);
   --face:#FFFFFF;
-  --ink:#1A2027;
-  --muted:#59646F;
-  --line:#D2D9DF;
+  --ink:hsl(var(--nh) 20% 13%);
+  --muted:hsl(var(--nh) 10% 38%);
+  --line:hsl(var(--nh) var(--ns) 84%);
   --focus:#D4402C;
   --short:#23806B;
   --long:#3A68AE;
@@ -27,18 +33,23 @@
   --font-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
+
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#11151A; --surface:#181E24; --face:#1E252D; --ink:#E5EAEE; --muted:#93A0AB; --line:#2C353E;
+    --bg:hsl(var(--nh) 18% 8.5%); --surface:hsl(var(--nh) 16% 11.5%); --face:hsl(var(--nh) 15% 14.5%);
+    --ink:hsl(var(--nh) 20% 91%); --muted:hsl(var(--nh) 10% 62%); --line:hsl(var(--nh) 14% 21%);
     --focus:#EE5F49; --short:#4BB59C; --long:#74A0E2; --on-accent:#10141A; --shadow:rgba(0,0,0,.35);
     color-scheme:dark;
   }
+
 }
 :root[data-theme="dark"]{
-  --bg:#11151A; --surface:#181E24; --face:#1E252D; --ink:#E5EAEE; --muted:#93A0AB; --line:#2C353E;
+  --bg:hsl(var(--nh) 18% 8.5%); --surface:hsl(var(--nh) 16% 11.5%); --face:hsl(var(--nh) 15% 14.5%);
+  --ink:hsl(var(--nh) 20% 91%); --muted:hsl(var(--nh) 10% 62%); --line:hsl(var(--nh) 14% 21%);
   --focus:#EE5F49; --short:#4BB59C; --long:#74A0E2; --on-accent:#10141A; --shadow:rgba(0,0,0,.35);
   color-scheme:dark;
 }
+
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5}
 body.m-short{--mode:var(--short)}
 body.m-long{--mode:var(--long)}
@@ -72,9 +83,9 @@ button{cursor:pointer}
 .hand{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;opacity:.75}
 .knob{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
 .knob-dot{fill:var(--ink)}
+.mb-mark{fill:var(--short);stroke:var(--face);stroke-width:2.5}
 .dial.ring{animation:ring .5s ease-in-out 4}
 @keyframes ring{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}
-@media (prefers-reduced-motion:reduce){.dial.ring{animation:none}}
 
 .readout{font-family:var(--font-display);font-weight:600;font-size:clamp(68px,15vw,104px);line-height:.95;display:flex;justify-content:center;margin-top:-4px}
 .readout .d{display:inline-block;width:.54em;text-align:center}
@@ -94,7 +105,8 @@ button{cursor:pointer}
 .primary:active{transform:translateY(1px)}
 .ghost{border:1px solid var(--line);background:var(--face);padding:9px 18px;border-radius:999px;font-weight:700;font-size:14px}
 .ghost:hover{border-color:var(--muted)}
-.hint{font-size:13px;color:var(--muted);text-align:center;margin:0;max-width:44ch}
+.ghost.small{padding:6px 14px;font-size:13px}
+.hint{font-size:13px;color:var(--muted);text-align:center;margin:0;max-width:46ch}
 kbd{font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--face)}
 
 .midbreak{width:min(100%,440px);font-size:14px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -106,7 +118,13 @@ kbd{font-family:var(--font-mono);font-size:12px;border:1px solid var(--line);bor
 .mb-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;padding:8px 14px;border-radius:14px;background:var(--bg);color:var(--ink);text-align:center}
 .mb-status i{width:9px;height:9px;border-radius:50%;background:var(--short);display:inline-block}
 .link{border:0;background:transparent;padding:0;color:var(--muted);text-decoration:underline;font-size:13px}
-.mb-mark{fill:var(--short);stroke:var(--face);stroke-width:2.5}
+.link:hover{color:var(--ink)}
+
+.tools{display:flex;flex-wrap:wrap;gap:10px 14px;justify-content:center;align-items:center;width:100%;padding-top:14px;border-top:1px dashed var(--line)}
+.pro-badge{display:inline-block;font-family:var(--font-display);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:0 7px;border-radius:6px;background:var(--focus);color:var(--on-accent);line-height:1.6}
+
+.pro-chip{display:inline-flex;align-items:center;gap:8px;border:1px dashed var(--line);background:transparent;color:var(--muted);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:700}
+.pro-chip:hover{color:var(--ink);border-color:var(--muted)}
 
 /* Side column */
 .side{display:flex;flex-direction:column;gap:28px;min-width:0;padding-top:4px}
@@ -147,6 +165,17 @@ h2{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing
 .empty{color:var(--muted);margin:0;padding:14px 0;border-top:1px solid var(--line);max-width:52ch}
 .more{font-size:13px;color:var(--muted);margin:10px 0 0}
 
+.pro-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 20px}
+.pro-card .sec-head{align-items:center}
+.pro-card h2{color:var(--ink)}
+.pro-card.flash{animation:flash 1.4s ease}
+@keyframes flash{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 3px var(--focus)}}
+.pro-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.pro-list li{padding-left:18px;position:relative}
+.pro-list li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:var(--focus)}
+.pro-buy{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px}
+.buy{display:inline-block;text-decoration:none;background:var(--focus);color:var(--on-accent);font-family:var(--font-display);font-weight:700;font-size:20px;letter-spacing:.06em;text-transform:uppercase;padding:8px 22px;border-radius:999px;box-shadow:0 2px 0 var(--shadow)}
+
 details.settings{border-top:1px solid var(--line);padding-top:14px}
 details.settings summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.settings summary::-webkit-details-marker{display:none}
@@ -154,18 +183,26 @@ details.settings summary::after{content:"+";font-family:var(--font-mono);color:v
 details.settings[open] summary::after{content:"−"}
 .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-top:14px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-.field label,.field .lab{font-size:13px;color:var(--muted)}
+.field label,.field .lab,.set-block .lab{font-size:13px;color:var(--muted)}
 .inwrap{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;background:var(--face);overflow:hidden}
 .inwrap input{border:0;background:transparent;padding:8px 10px;width:100%;min-width:0;font-family:var(--font-mono)}
 .inwrap span{padding-right:10px;color:var(--muted);font-size:13px}
-.field select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--face)}
+.field select,.set-block select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--face);max-width:100%}
 .checks{display:flex;flex-direction:column;gap:8px;margin-top:16px}
 .checks label{display:flex;gap:10px;align-items:center}
 .checks input{width:18px;height:18px;accent-color:var(--focus)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
-.row input[type=range]{flex:1 1 140px;accent-color:var(--focus)}
+.row{display:flex;gap:10px 14px;align-items:flex-end;flex-wrap:wrap;margin-top:16px}
+.row input[type=range]{width:100%;min-width:120px;margin:10px 0;accent-color:var(--focus)}
+.row .note{align-self:center}
+.set-block{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:18px}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--face);border-radius:999px;padding:5px 12px 5px 6px;font-size:13px;font-weight:700}
+.sw i{width:18px;height:18px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px var(--face),0 0 0 3px var(--line)}
+.sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.locked .sw{opacity:.5;cursor:default}
 
 .toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:11px 16px;border-radius:12px;max-width:calc(100% - 32px);width:max-content;box-shadow:0 6px 24px var(--shadow);font-size:14px;z-index:10}
+@media (prefers-reduced-motion:reduce){.dial.ring,.pro-card.flash{animation:none}}
 </style>
 </head>
 <body>
@@ -201,7 +238,7 @@ details.settings[open] summary::after{content:"−"}
 
     <div class="task">
       <label for="task">Working on</label>
-      <input id="task" type="text" maxlength="120" placeholder="What are you focusing on? (saved with the round)" autocomplete="off">
+      <input id="task" type="text" maxlength="120" placeholder="Subject or task, e.g. Maths chapter 4" autocomplete="off">
     </div>
 
     <div class="controls">
@@ -222,6 +259,13 @@ details.settings[open] summary::after{content:"−"}
       </div>
       <div class="mb-status" id="mb-status" hidden><i aria-hidden="true"></i><span id="mb-text">Break in 15:00</span><button class="link" id="mb-cancel" type="button">Cancel</button></div>
     </div>
+
+    <div class="tools">
+
+      <button class="pro-chip" type="button" data-upsell>Focus sounds <span class="pro-badge">Pro</span></button>
+      <button class="pro-chip" type="button" data-upsell>Full-screen focus mode <span class="pro-badge">Pro</span></button>
+
+    </div>
     <p class="hint">Press <kbd>Space</kbd> to start or pause. Skip ends the round now and logs any focus time over a minute.</p>
   </section>
 
@@ -231,6 +275,22 @@ details.settings[open] summary::after{content:"−"}
       <div class="today-main"><span class="big" id="today-min">0m</span><span class="of">of <span id="goal-label">3h</span> daily goal</span></div>
       <div class="bar" role="progressbar" aria-label="Progress to daily goal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-bar"><div id="goal-fill"></div></div>
       <div class="meta"><span id="today-count">0 rounds</span> · <span id="week-total">0m in the last 7 days</span></div>
+    </section>
+
+    <section class="pro-card" id="pro-card" aria-labelledby="h-pro">
+      <div class="sec-head"><h2 id="h-pro">Focus Dial Pro</h2><span class="pro-badge">Pro</span></div>
+      <ul class="pro-list">
+        <li><b>Exam countdown.</b> See the days left for every exam and deadline.</li>
+        <li><b>Study streaks.</b> A 12-week heatmap and your time per subject.</li>
+        <li><b>Focus sounds.</b> Rain, ocean waves, brown noise and a ticking clock.</li>
+        <li><b>Focus mode.</b> A full-screen dial with nothing else on screen.</li>
+        <li><b>6 colour themes</b> plus a light and dark switch.</li>
+        <li><b>Export your log</b> to a spreadsheet file.</li>
+      </ul>
+      <div class="pro-buy">
+        <a class="buy" id="buy" href="#" target="_blank" rel="noopener">Get Pro</a>
+        <span class="note">One-time payment. Works offline, no account needed.</span>
+      </div>
     </section>
 
     <section aria-labelledby="h-week">
@@ -245,7 +305,7 @@ details.settings[open] summary::after{content:"−"}
     </section>
 
     <details class="settings" id="settings" open>
-      <summary><h2>Timer settings</h2></summary>
+      <summary><h2>Settings</h2></summary>
       <div class="fields">
         <div class="field"><label for="set-focus">Focus</label><div class="inwrap"><input id="set-focus" type="number" min="1" max="180" step="1" inputmode="numeric"><span>min</span></div></div>
         <div class="field"><label for="set-short">Short break</label><div class="inwrap"><input id="set-short" type="number" min="1" max="60" step="1" inputmode="numeric"><span>min</span></div></div>
@@ -256,6 +316,7 @@ details.settings[open] summary::after{content:"−"}
       <div class="checks">
         <label><input type="checkbox" id="set-autobreak"> Start breaks automatically</label>
         <label><input type="checkbox" id="set-autofocus"> Start the next focus round automatically</label>
+
       </div>
       <div class="row">
         <div class="field"><label for="set-sound">Alarm</label>
@@ -266,9 +327,23 @@ details.settings[open] summary::after{content:"−"}
             <option value="none">Silent</option>
           </select>
         </div>
-        <div class="field" style="flex:1 1 160px"><label for="set-volume">Volume</label><input type="range" id="set-volume" min="0" max="1" step="0.05"></div>
-        <button class="ghost" id="btn-test" style="align-self:flex-end">Play alarm</button>
+        <div class="field" style="flex:1 1 160px"><label for="set-volume">Alarm volume</label><input type="range" id="set-volume" min="0" max="1" step="0.05"></div>
+        <button class="ghost" id="btn-test">Play alarm</button>
       </div>
+
+      <div class="set-block locked">
+        <span class="lab">Colour theme <span class="pro-badge">Pro</span></span>
+        <div class="swatches" aria-hidden="true">
+          <span class="sw" aria-pressed="true"><i style="background:#D4402C"></i>Tomato</span>
+          <span class="sw"><i style="background:#1B6EA3"></i>Ocean</span>
+          <span class="sw"><i style="background:#2E7A3A"></i>Forest</span>
+          <span class="sw"><i style="background:#8B3A8E"></i>Plum</span>
+          <span class="sw"><i style="background:#BF5512"></i>Sunrise</span>
+          <span class="sw"><i style="background:#262C33"></i>Graphite</span>
+        </div>
+        <button class="link" type="button" data-upsell>Unlock all themes with Pro</button>
+      </div>
+
       <div class="row">
         <button class="ghost" id="btn-newset">Start a new set</button>
         <span class="note">Resets the round count so the next focus is round 1.</span>
@@ -281,10 +356,24 @@ details.settings[open] summary::after{content:"−"}
 <script>
 (function(){
   "use strict";
+  var PRO = false;
   var $ = function(s){ return document.querySelector(s); };
+  var inViewer = !!(window.claude && typeof window.claude.use === "function");
   var MODES = ["focus","short","long"];
-  var DEFAULTS = {focus:25, short:5, long:15, every:4, goal:180, autoBreak:true, autoFocus:false, sound:"bell", volume:0.7};
+  var SKINS = [
+    {id:"tomato", name:"Tomato", c:"#D4402C"},
+    {id:"ocean", name:"Ocean", c:"#1B6EA3"},
+    {id:"forest", name:"Forest", c:"#2E7A3A"},
+    {id:"plum", name:"Plum", c:"#8B3A8E"},
+    {id:"sunrise", name:"Sunrise", c:"#BF5512"},
+    {id:"graphite", name:"Graphite", c:"#262C33"}
+  ];
+  var AMBIENTS = ["off","rain","ocean","brown","pink","clock"];
+  var DEFAULTS = {focus:25, short:5, long:15, every:4, goal:180, autoBreak:true, autoFocus:false, sound:"bell", volume:0.7,
+                  skin:"tomato", appearance:"system", ambient:"off", ambientVol:0.5, ambientBreaks:false};
   var LIMITS = {focus:[1,180], short:[1,60], long:[1,90], every:[2,12], goal:[30,960]};
+  var WD = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  var MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   var LS = {
     get: function(k, fb){ try{ var v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); }catch(e){ return fb; } },
@@ -297,7 +386,12 @@ details.settings[open] summary::after{content:"−"}
     var n = Number(settings[k]); settings[k] = isFinite(n) ? clamp(Math.round(n), LIMITS[k][0], LIMITS[k][1]) : DEFAULTS[k];
   });
   settings.volume = clamp(Number(settings.volume) || 0, 0, 1);
+  settings.ambientVol = clamp(Number(settings.ambientVol) || 0, 0, 1);
+  settings.autoBreak = !!settings.autoBreak; settings.autoFocus = !!settings.autoFocus; settings.ambientBreaks = !!settings.ambientBreaks;
   if (["bell","beep","chime","none"].indexOf(settings.sound) < 0) settings.sound = "bell";
+  if (!SKINS.some(function(s){ return s.id === settings.skin; })) settings.skin = "tomato";
+  if (["system","light","dark"].indexOf(settings.appearance) < 0) settings.appearance = "system";
+  if (AMBIENTS.indexOf(settings.ambient) < 0) settings.ambient = "off";
   function saveSettings(){ LS.set("fd.settings", settings); }
 
   function durMs(mode){ return settings[mode] * 60000; }
@@ -321,8 +415,11 @@ details.settings[open] summary::after{content:"−"}
     return m ? h + "h" + (m < 10 ? "0" : "") + m : h + "h";
   }
   function fmtClock(ts){ try{ return new Date(ts).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); }catch(e){ var d=new Date(ts); return d.getHours()+":"+String(d.getMinutes()).padStart(2,"0"); } }
+  function fmtCountdown(ms){ var s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
   function dayKey(ts){ var d = new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
   function startOfDay(ts){ var d = new Date(ts); d.setHours(0,0,0,0); return d.getTime(); }
+  function addDays(ts, n){ var d = new Date(ts); d.setDate(d.getDate() + n); return d.getTime(); }
+  function keyToTs(k){ var p = k.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]).getTime(); }
 
   /* ---------- dial ---------- */
   var NS = "http://www.w3.org/2000/svg", faceScale = 0;
@@ -370,7 +467,9 @@ details.settings[open] summary::after{content:"−"}
     return t.cycle > 0 ? ((t.cycle - 1) % every) + 1 : 0;
   }
   function render(){
-    document.body.className = "m-" + t.mode;
+    var bl = document.body.classList;
+    bl.toggle("m-short", t.mode === "short");
+    bl.toggle("m-long", t.mode === "long");
     MODES.forEach(function(m){ $("#tab-"+m).setAttribute("aria-pressed", String(m === t.mode)); });
 
     var totalMin = t.totalMs / 60000, remMin = t.remainingMs / 60000;
@@ -407,8 +506,8 @@ details.settings[open] summary::after{content:"−"}
     $("#status-line").textContent = label + " · " + state;
     $("#btn-main").textContent = t.status === "running" ? "Pause" : (t.status === "paused" ? "Resume" : "Start");
     renderMidBreak(scale);
+    
   }
-  function fmtCountdown(ms){ var s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
   function renderMidBreak(scale){
     var box = $("#midbreak"), form = $("#mb-form"), st = $("#mb-status"), mark = $("#mb-mark");
     box.hidden = t.mode !== "focus";
@@ -471,6 +570,8 @@ details.settings[open] summary::after{content:"−"}
     }
   }
   ["pointerdown","keydown"].forEach(function(ev){ document.addEventListener(ev, function(){ audio(); }, {passive:true}); });
+
+  
 
   /* ---------- wake lock ---------- */
   var wake = null;
@@ -622,7 +723,7 @@ details.settings[open] summary::after{content:"−"}
     var items = localItems();
     if (!items.some(function(x){ return x.id === s.id; })) items.push(s);
     items.sort(function(a,b){ return a.endedAt - b.endedAt; });
-    if (items.length > 1500) items = items.slice(items.length - 1500);
+    if (items.length > 3000) items = items.slice(items.length - 3000);
     LS.set("fd.sessions", items);
   }
   function removeLocal(id){ LS.set("fd.sessions", localItems().filter(function(x){ return x.id !== id; })); }
@@ -656,40 +757,9 @@ details.settings[open] summary::after{content:"−"}
       .sort(function(a,b){ return b.endedAt - a.endedAt; });
   }
 
-  function initCloud(){
-    var c = window.claude;
-    if (!c || typeof c.use !== "function") return;
-    Promise.all([c.use("db"), c.use("user")]).then(function(r){
-      var db = r[0], user = r[1];
-      if (!db || !user) return null;
-      return user.id().then(function(uid){ return uid ? {db:db, uid:uid} : null; });
-    }).then(function(x){
-      if (!x) return;
-      var col;
-      try{ col = x.db.doc("data/users/" + x.uid + "/log").collection("sessions"); }catch(e){ return; }
-      log.kind = "cloud"; log.col = col;
-      $("#store-note").textContent = "Private to you · syncs across your devices";
-      col.orderBy("endedAt", "desc").limit(600).onSnapshot(function(snap){
-        log.cloud = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-        renderLog();
-      }, function(){
-        log.kind = "local"; log.col = null;
-        $("#store-note").textContent = "Saved in this browser";
-        renderLog();
-      });
-      // Move any rounds saved in this browser into the private log.
-      var pending = localItems();
-      (function next(i){
-        if (i >= pending.length || log.kind !== "cloud") return;
-        var s = pending[i];
-        col.doc(s.id).set(bodyOf(s)).then(function(){ removeLocal(s.id); next(i + 1); }).catch(function(){});
-      })(0);
-    }).catch(function(){});
-  }
+  
 
   /* ---------- render log ---------- */
-  var WD = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  var MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   function renderLog(){
     var items = allItems();
     var now = Date.now(), today0 = startOfDay(now), todayKey = dayKey(now);
@@ -707,12 +777,11 @@ details.settings[open] summary::after{content:"−"}
     $("#goal-bar").setAttribute("aria-valuenow", String(pct));
     $("#today-count").textContent = todayItems.length + (todayItems.length === 1 ? " round" : " rounds");
 
-    // 7-day chart
     var days = [], weekTotal = 0;
     for (var i = 6; i >= 0; i--){
-      var d = new Date(today0); d.setDate(d.getDate() - i);
-      var k = dayKey(d.getTime()), v = perDay[k] || 0;
-      weekTotal += v; days.push({k:k, v:v, label: i === 0 ? "Today" : WD[d.getDay()], today: i === 0});
+      var ts = addDays(today0, -i);
+      var k = dayKey(ts), v = perDay[k] || 0;
+      weekTotal += v; days.push({k:k, v:v, label: i === 0 ? "Today" : WD[new Date(ts).getDay()], today: i === 0});
     }
     $("#week-total").textContent = fmtDur(weekTotal) + " in the last 7 days";
     var max = Math.max(settings.goal, Math.max.apply(null, days.map(function(x){ return x.v; })));
@@ -731,20 +800,21 @@ details.settings[open] summary::after{content:"−"}
     var dl = $("#days"); dl.textContent = "";
     days.forEach(function(x){ var s = document.createElement("span"); s.textContent = x.label; if (x.today) s.className = "today"; dl.appendChild(s); });
 
-    // log list
+    
+
     var box = $("#log"); box.textContent = "";
     if (!items.length){
       var p = document.createElement("p"); p.className = "empty";
       p.textContent = "No focus rounds logged yet. When a focus round ends, it appears here with its time and what you worked on.";
       box.appendChild(p); return;
     }
-    var shown = items.slice(0, 60), groups = [], gmap = {};
+    var shown = items.slice(0, logLimit), groups = [], gmap = {};
     shown.forEach(function(s){
       var k = dayKey(s.startedAt);
       if (!gmap[k]){ gmap[k] = {k:k, ts:s.startedAt, items:[]}; groups.push(gmap[k]); }
       gmap[k].items.push(s);
     });
-    var yKey = dayKey(today0 - 43200000);
+    var yKey = dayKey(addDays(today0, -1));
     groups.forEach(function(g){
       var wrap = document.createElement("div"); wrap.className = "group";
       var h = document.createElement("h3");
@@ -774,11 +844,18 @@ details.settings[open] summary::after{content:"−"}
       wrap.appendChild(ul); box.appendChild(wrap);
     });
     if (items.length > shown.length){
-      var more = document.createElement("p"); more.className = "more";
-      more.textContent = "Showing your latest " + shown.length + " rounds. The chart and totals include all of them.";
-      box.appendChild(more);
+      var more = document.createElement("div"); more.className = "row";
+      var btn = document.createElement("button"); btn.type = "button"; btn.className = "ghost small";
+      btn.textContent = "Show " + Math.min(30, items.length - shown.length) + " more";
+      btn.addEventListener("click", function(){ logLimit += 30; renderLog(); });
+      var note = document.createElement("span"); note.className = "note";
+      note.textContent = shown.length + " of " + items.length + " rounds shown";
+      more.appendChild(btn); more.appendChild(note); box.appendChild(more);
     }
   }
+  var logLimit = 15;
+
+  
 
   /* ---------- settings UI ---------- */
   function fillSettings(){
@@ -792,6 +869,7 @@ details.settings[open] summary::after{content:"−"}
     $("#set-sound").value = settings.sound;
     $("#set-volume").value = settings.volume;
     $("#mb-len").value = settings.short;
+    
   }
   function bindNum(id, key, toVal, fromVal){
     var el = $("#" + id);
@@ -817,7 +895,7 @@ details.settings[open] summary::after{content:"−"}
   $("#set-volume").addEventListener("change", function(e){ settings.volume = clamp(Number(e.target.value) || 0, 0, 1); saveSettings(); });
   $("#btn-test").addEventListener("click", function(){
     if (settings.sound === "none"){ toast("The alarm is set to Silent."); return; }
-    if (settings.volume <= 0){ toast("Volume is at zero."); return; }
+    if (settings.volume <= 0){ toast("Alarm volume is at zero."); return; }
     playAlarm();
   });
   $("#btn-newset").addEventListener("click", function(){
@@ -825,9 +903,28 @@ details.settings[open] summary::after{content:"−"}
     if (t.status === "idle" && t.mode !== "focus") setIdle("focus");
     persist(); render(); toast("New set started. Next focus is round 1.");
   });
-
   $("#mb-set").addEventListener("click", setMidBreak);
   $("#mb-cancel").addEventListener("click", function(){ t.midBreak = null; persist(); render(); toast("Mid-round break cancelled."); });
+
+  
+
+  
+  (function(){
+    function meta(name){ var m = document.querySelector('meta[name="' + name + '"]'); return m ? (m.getAttribute("content") || "").trim() : ""; }
+    var url = meta("fd-buy-url"), price = meta("fd-price"), buy = $("#buy");
+    var ready = /^https?:\/\//i.test(url) && url.indexOf("YOUR-STORE-LINK") < 0;
+    buy.textContent = price ? "Get Pro · " + price : "Get Pro";
+    if (ready) buy.href = url;
+    buy.addEventListener("click", function(e){ if (!ready){ e.preventDefault(); toast("Pro isn't on sale yet. Check back soon."); } });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-upsell]"), function(b){
+      b.addEventListener("click", function(){
+        var card = $("#pro-card");
+        try{ card.scrollIntoView({behavior: "smooth", block: "center"}); }catch(e){ card.scrollIntoView(); }
+        card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+      });
+    });
+  })();
+  
 
   /* ---------- controls ---------- */
   $("#btn-main").addEventListener("click", toggle);
@@ -836,23 +933,30 @@ details.settings[open] summary::after{content:"−"}
   MODES.forEach(function(m){ $("#tab-"+m).addEventListener("click", function(){ switchMode(m); }); });
   $("#task").addEventListener("input", function(e){ t.label = e.target.value; persist(); });
   document.addEventListener("keydown", function(e){
-    if (e.code !== "Space" && e.key !== " ") return;
     var tag = (e.target && e.target.tagName) || "";
-    if (/^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
-    e.preventDefault(); toggle();
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag) || (e.target && e.target.isContentEditable)) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.code === "Space" || e.key === " "){
+      if (/^(BUTTON|SUMMARY|A)$/.test(tag)) return;
+      e.preventDefault(); toggle(); return;
+    }
+    
   });
   document.addEventListener("visibilitychange", function(){
-    if (document.visibilityState === "visible"){ tick(); if (t.status === "running") lockOn(); renderLog(); }
+    if (document.visibilityState === "visible"){
+      tick(); if (t.status === "running") lockOn(); renderLog();
+      
+    }
   });
 
   /* ---------- boot ---------- */
   function restore(saved){
     if (saved && MODES.indexOf(saved.mode) >= 0 && ["idle","running","paused"].indexOf(saved.status) >= 0){
       ["mode","status","totalMs","remainingMs","endAt","startedAt","cycle","label","midBreak","resume"].forEach(function(k){ if (saved[k] != null) t[k] = saved[k]; });
-      if (!t.midBreak || typeof t.midBreak.atRemainingMs !== "number" || !t.midBreak.lenMin) t.midBreak = null;
-      if (!t.resume || typeof t.resume.remainingMs !== "number" || typeof t.resume.totalMs !== "number") t.resume = null;
       t.cycle = Math.max(0, Math.floor(Number(t.cycle) || 0));
       t.label = typeof t.label === "string" ? t.label : "";
+      if (!t.midBreak || typeof t.midBreak.atRemainingMs !== "number" || !t.midBreak.lenMin) t.midBreak = null;
+      if (!t.resume || typeof t.resume.remainingMs !== "number" || typeof t.resume.totalMs !== "number") t.resume = null;
     }
     if (t.status === "idle"){ t.totalMs = t.remainingMs = durMs(t.mode); }
     else if (t.status === "running"){
@@ -876,11 +980,13 @@ details.settings[open] summary::after{content:"−"}
   function start(data){
     restore((data && data.timer) || LS.get("fd.timer", null));
     fillSettings(); render(); renderLog();
+    
     setInterval(tick, 250);
-    setInterval(renderLog, 60000);
-    initCloud();
+    setInterval(function(){ renderLog();  }, 60000);
+    
   }
 
+  
   fillSettings(); render(); renderLog();
   try{ if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(function(){ return {timer: serialize()}; }); }catch(e){}
   var hot = window.claude && window.claude.hot;
